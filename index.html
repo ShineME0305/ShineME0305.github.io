@@ -27,7 +27,7 @@
     <script type="module">
       const { pdfjsLib } = globalThis;
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
-      const viewer = document.getElementById("pdfViewer");
+      const pdfViewer = document.getElementById("pdfViewer");
       const fileUrl = window.location.search.slice(9);
       pdfjsLib.getDocument(fileUrl).promise.then(function (pdf) {
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -40,7 +40,7 @@
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
-            viewer.appendChild(canvas);
+            pdfViewer.appendChild(canvas);
 
             const renderContext = {
               canvasContext: context,
