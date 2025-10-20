@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>体检报告查看</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        padding: 10px;
+      }
+
+      #pdfViewer canvas {
+        width: 100%;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pdfViewer"></div>
+    <script src="./pdf.mjs" type="module"></script>
+
+    <script type="module">
+      const { pdfjsLib } = globalThis;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
+      const viewer = document.getElementById("pdfViewer");
+      pdfjsLib
+        .getDocument(window.location.search.slice(9))
+        .promise.then(function (pdf) {
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(function (page) {
+              const scale = 1.5;
+              const viewport = page.getViewport({ scale: scale });
+
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+
+              viewer.appendChild(canvas);
+
+              const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+              };
+              page.render(renderContext);
+            });
+          }
+        });
+    </script>
+  </body>
+</html>
