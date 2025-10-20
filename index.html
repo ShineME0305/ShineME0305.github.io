@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>体检报告查看</title>
+    <title>查看体检报告</title>
     <style>
       * {
         margin: 0;
@@ -29,7 +29,6 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
       const viewer = document.getElementById("pdfViewer");
       const fileUrl = window.location.search.slice(9);
-      console.log("fileUrl", fileUrl);
       pdfjsLib.getDocument(fileUrl).promise.then(function (pdf) {
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           pdf.getPage(pageNum).then(function (page) {
