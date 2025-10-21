@@ -3,17 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <title>查看体检报告</title>
     <style>
       * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
 
+      html,
       body {
-        padding: 10px;
+        width: 100%;
+        height: 100%;
       }
 
+      #container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      #download {
+        text-align: center;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      #btn {
+        outline: none;
+        border: none;
+        background-color: #0189ff;
+        width: 100%;
+        color: #fff;
+        height: 36px;
+        border-radius: 4px;
+      }
+
+      #pdfViewer {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+      }
       #pdfViewer canvas {
         width: 100%;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
@@ -21,27 +53,30 @@
     </style>
   </head>
   <body>
-    <div id="pdfViewer"></div>
+    <div id="container">
+      <div id="download">
+        <button id="btn">下载 PDF 文件</button>
+      </div>
+      <div id="pdfViewer"></div>
+    </div>
     <script src="./pdf.mjs" type="module"></script>
 
     <script type="module">
       const { pdfjsLib } = globalThis;
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
-      const pdfViewer = document.getElementById("pdfViewer");
       const fileUrl = window.location.search.slice(9);
+
+      const pdfViewer = document.getElementById("pdfViewer");
       pdfjsLib.getDocument(fileUrl).promise.then(function (pdf) {
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           pdf.getPage(pageNum).then(function (page) {
             const scale = 1.5;
             const viewport = page.getViewport({ scale: scale });
-
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
             canvas.height = viewport.height;
             canvas.width = viewport.width;
-
             pdfViewer.appendChild(canvas);
-
             const renderContext = {
               canvasContext: context,
               viewport: viewport,
@@ -50,6 +85,24 @@
           });
         }
       });
+
+      const download = document.getElementById("btn");
+      download.addEventListener("click", downloadPdf);
+      function downloadPdf() {
+        pdfjsLib.getDocument(fileUrl).promise.then((pdf) => {
+          pdf.getData().then((data) => {
+            const blob = new Blob([data], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileUrl.substr(fileUrl.lastIndexOf("/") + 1);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          });
+        });
+      }
     </script>
   </body>
 </html>
