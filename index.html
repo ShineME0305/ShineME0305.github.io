@@ -31,14 +31,15 @@
         border-bottom: 1px solid #eee;
       }
 
-      #btn {
+      .btn {
         outline: none;
         border: none;
         background-color: #0189ff;
         width: 100%;
-        color: #fff;
         height: 36px;
+        line-height: 36px;
         border-radius: 4px;
+        color: #fff;
       }
 
       #pdfViewer {
@@ -50,12 +51,16 @@
         width: 100%;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
       }
+
+      #invalid {
+        padding: 120px 12px 0;
+      }
     </style>
   </head>
   <body>
     <div id="container">
       <div id="download">
-        <button id="btn">下载 PDF 文件</button>
+        <button class="btn">下载 PDF 文件</button>
       </div>
       <div id="pdfViewer"></div>
     </div>
@@ -64,29 +69,45 @@
     <script type="module">
       const { pdfjsLib } = globalThis;
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
-      const fileUrl = window.location.search.slice(9);
+      const { search } = window.location;
+      const container = document.getElementById("container");
+      if (!["fileUrl", "https"].every((v) => search.includes(v))) {
+        container.innerHTML =
+          '<div id="invalid"><span>地址无效，请稍后再试</span><button class="btn" style="margin-top: 12px">刷新页面</button></div>';
+        const invalid = document.querySelector("#invalid .btn");
+        invalid.addEventListener("click", () => {
+          window.location.reload();
+        });
+        throw new Error("");
+      }
+      const fileUrl = search.slice(9);
 
       const pdfViewer = document.getElementById("pdfViewer");
-      pdfjsLib.getDocument(fileUrl).promise.then(function (pdf) {
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          pdf.getPage(pageNum).then(function (page) {
-            const scale = 1.5;
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            pdfViewer.appendChild(canvas);
-            const renderContext = {
-              canvasContext: context,
-              viewport: viewport,
-            };
-            page.render(renderContext);
-          });
-        }
-      });
+      pdfjsLib
+        .getDocument(fileUrl)
+        .promise.then(function (pdf) {
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(function (page) {
+              const scale = 1.5;
+              const viewport = page.getViewport({ scale: scale });
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+              pdfViewer.appendChild(canvas);
+              const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+              };
+              page.render(renderContext);
+            });
+          }
+        })
+        .catch((err) => {
+          alert(err.message);
+        });
 
-      const download = document.getElementById("btn");
+      const download = document.querySelector("#download .btn");
       download.addEventListener("click", downloadPdf);
       function downloadPdf() {
         pdfjsLib.getDocument(fileUrl).promise.then((pdf) => {
