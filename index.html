@@ -40,6 +40,7 @@
         line-height: 36px;
         border-radius: 4px;
         color: #fff;
+        transition: all 0.3s;
       }
 
       #pdfViewer {
@@ -107,9 +108,14 @@
           alert(err.message);
         });
 
+      let timeId = null;
       const download = document.querySelector("#download .btn");
       download.addEventListener("click", downloadPdf);
       function downloadPdf() {
+        timeId && clearTimeout(timeId);
+        download.disabled = true;
+        download.style.color = "#333";
+        download.style.backgroundColor = "#eee";
         pdfjsLib.getDocument(fileUrl).promise.then((pdf) => {
           pdf.getData().then((data) => {
             const blob = new Blob([data], { type: "application/pdf" });
@@ -121,6 +127,11 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            timeId = setTimeout(() => {
+              download.disabled = false;
+              download.style.color = "#fff";
+              download.style.backgroundColor = "#1890ff";
+            }, 1000);
           });
         });
       }
