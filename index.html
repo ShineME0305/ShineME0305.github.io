@@ -1,27 +1,66 @@
+<!-- pdf-viewer.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>PDF 预览</title>
+    <!-- 引入 pdf.js -->
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,body {
+      #pdfContainer canvas {
         width: 100%;
         height: 100%;
+        box-shadow: 0 0 5px 0 #eee;
       }
     </style>
   </head>
   <body>
-    <iframe
-      src="https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf"
-      frameborder="0"
-      width="100%"
-      height="100%"
-    ></iframe>
+    <div id="pdfContainer"></div>
+
+    <script type="module" src="./pdf.mjs"></script>
+    <script type="module">
+      const { pdfjsLib } = globalThis;
+      // 从 URL 参数获取 PDF 地址（小程序通过 web-view 传参）
+      const urlParams = new URLSearchParams(window.location.search);
+      const pdfUrl = urlParams.get("pdfUrl"); // 例如：https://your-domain.com/test.pdf
+
+      // 配置 pdf.js（指定 worker 路径，避免跨域问题）
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
+
+      // 渲染 PDF
+      async function renderPdf(url) {
+        try {
+          // 加载 PDF 文档（支持远程 URL 或 base64）
+          const pdfDoc = await pdfjsLib.getDocument(url).promise;
+          const container = document.getElementById("pdfContainer");
+
+          // 渲染每一页
+          for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 1.2 }); // 缩放比例
+
+            // 创建画布渲染页面
+            const canvas = document.createElement("canvas");
+            canvas.className = "page";
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            await page.render({ canvasContext: ctx, viewport }).promise;
+          }
+        } catch (error) {
+          console.error("PDF 加载失败：", error);
+          alert("无法加载 PDF，请检查链接是否有效");
+        }
+      }
+
+      // 初始化渲染
+      if (pdfUrl) {
+        renderPdf(pdfUrl);
+      } else {
+        alert("未指定 PDF 地址");
+      }
+    </script>
   </body>
 </html>
