@@ -82,7 +82,8 @@
         alert("页面错误了");
         throw new Error("");
       }
-      const fileUrl = search.slice(9);
+      // const fileUrl = search.slice(9);
+      const fileUrl = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
 
       const pdfViewer = document.getElementById("pdfViewer");
       pdfjsLib.getDocument(fileUrl).promise.then(function (pdf) {
