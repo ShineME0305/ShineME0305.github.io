@@ -72,16 +72,16 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
       const { search } = window.location;
       const container = document.getElementById("container");
-      if (!["fileUrl", "https"].every((v) => search.includes(v))) {
-        container.innerHTML =
-          '<div id="invalid"><span>地址无效，请稍后再试</span><button class="btn" style="margin-top: 12px">刷新页面</button></div>';
-        const invalid = document.querySelector("#invalid .btn");
-        invalid.addEventListener("click", () => {
-          window.location.reload();
-        });
-        alert("页面错误了");
-        throw new Error("");
-      }
+      // if (!["fileUrl", "https"].every((v) => search.includes(v))) {
+      //   container.innerHTML =
+      //     '<div id="invalid"><span>地址无效，请稍后再试</span><button class="btn" style="margin-top: 12px">刷新页面</button></div>';
+      //   const invalid = document.querySelector("#invalid .btn");
+      //   invalid.addEventListener("click", () => {
+      //     window.location.reload();
+      //   });
+      //   alert("页面错误了");
+      //   throw new Error("");
+      // }
       // const fileUrl = search.slice(9);
       const fileUrl = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
 
