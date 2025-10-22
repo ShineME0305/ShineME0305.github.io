@@ -10,7 +10,7 @@
       #pdfContainer canvas {
         width: 100%;
         height: 100%;
-        box-shadow: 0 0 5px 0 #eee;
+        box-shadow: 0 0 5px 0 #ccc;
       }
     </style>
   </head>
@@ -27,40 +27,65 @@
       // 配置 pdf.js（指定 worker 路径，避免跨域问题）
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
 
-      // 渲染 PDF
-      async function renderPdf(url) {
+      /**
+       * 将 PDF 转换为图片（Base64 格式）
+       * @param {string} pdfUrl - PDF 的 URL 或 Base64 数据
+       * @param {number} scale - 缩放比例（影响图片清晰度）
+       * @returns {Promise<Array<string>>} 每一页的 Base64 图片数组
+       */
+      async function pdfToImages(pdfUrl, scale = 1.5) {
         try {
-          // 加载 PDF 文档（支持远程 URL 或 base64）
-          const pdfDoc = await pdfjsLib.getDocument(url).promise;
-          const container = document.getElementById("pdfContainer");
+          // 1. 加载 PDF 文档
+          const pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+          const imageList = [];
 
-          // 渲染每一页
+          // 2. 遍历每一页，渲染到 Canvas
           for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
             const page = await pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 1.2 }); // 缩放比例
 
-            // 创建画布渲染页面
+            // 设置视图大小（基于缩放比例）
+            const viewport = page.getViewport({ scale });
+
+            // 创建 Canvas 元素
             const canvas = document.createElement("canvas");
-            canvas.className = "page";
+            const ctx = canvas.getContext("2d");
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-            container.appendChild(canvas);
 
-            const ctx = canvas.getContext("2d");
-            await page.render({ canvasContext: ctx, viewport }).promise;
+            // 3. 渲染页面到 Canvas
+            await page.render({
+              canvasContext: ctx,
+              viewport: viewport,
+            }).promise;
+
+            // 4. 将 Canvas 转换为 Base64 图片（支持 jpeg/png 格式）
+            const imageBase64 = canvas.toDataURL("image/jpeg", 0.9); // 0.9 是压缩质量
+            imageList.push(imageBase64);
           }
+
+          return imageList;
         } catch (error) {
-          console.error("PDF 加载失败：", error);
-          alert("无法加载 PDF，请检查链接是否有效");
+          console.error("PDF 转换图片失败：", error);
+          throw new Error("转换失败，请检查 PDF 地址或格式");
         }
       }
-
-      // 初始化渲染
-      if (pdfUrl) {
-        renderPdf(pdfUrl);
-      } else {
-        alert("未指定 PDF 地址");
-      }
+      // 调用转换函数（PDF 地址需支持跨域或同域）
+      pdfToImages(pdfUrl, 2.0) // 缩放比例 2.0（更高清）
+        .then((images) => {
+          console.log("转换成功，共", images.length, "页");
+          // 示例：将图片渲染到页面
+          const container = document.getElementById("pdfContainer");
+          images.forEach((imgBase64) => {
+            const img = document.createElement("img");
+            img.src = imgBase64;
+            img.style.margin = "10px 0";
+            img.style.maxWidth = "100%";
+            container.appendChild(img);
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     </script>
   </body>
 </html>
