@@ -23,17 +23,18 @@
   <body>
     <div id="serach"></div>
     <div id="pdfViewer"></div>
-    <script src="./pdf.mjs" type="module"></script>
+    <!-- <script src="./pdf.mjs" type="module"></script> -->
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.mjs" type="module"></script>
 
     <script type="module">
       const { pdfjsLib } = globalThis;
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
       const serach = document.getElementById("serach");
       const pdfViewer = document.getElementById("pdfViewer");
       const pdfUrl = window.location.search.slice(8);
       (function () {
         setTimeout(() => {
-          serach.innerText = "search===" + pdfUrl;
+          serach.innerText = "search===1111111111" + pdfUrl;
           pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
               pdf.getPage(pageNum).then(function (page) {
