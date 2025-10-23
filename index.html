@@ -92,39 +92,41 @@
       });
 
       (function () {
-        const url = pdfUrl;
-        search.innerText = "search === " + url;
-        if (!url) {
-          console.error("Please enter a URL.");
-          return;
-        }
-
-        // 移除之前的canvas
-        while (viewer.firstChild) {
-          viewer.removeChild(viewer.firstChild);
-        }
-
-        pdfjsLib.getDocument(url).promise.then(function (pdf) {
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            pdf.getPage(pageNum).then(function (page) {
-              const scale = 1.5;
-              const viewport = page.getViewport({ scale: scale });
-
-              const canvas = document.createElement("canvas");
-              const context = canvas.getContext("2d");
-              canvas.height = viewport.height;
-              canvas.width = viewport.width;
-
-              viewer.appendChild(canvas);
-
-              const renderContext = {
-                canvasContext: context,
-                viewport: viewport,
-              };
-              page.render(renderContext);
-            });
+        setTimeout(() => {
+          const url = pdfUrl;
+          search.innerText = "search === " + url;
+          if (!url) {
+            console.error("Please enter a URL.");
+            return;
           }
-        });
+
+          // 移除之前的canvas
+          while (viewer.firstChild) {
+            viewer.removeChild(viewer.firstChild);
+          }
+
+          pdfjsLib.getDocument(url).promise.then(function (pdf) {
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              pdf.getPage(pageNum).then(function (page) {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
+
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                viewer.appendChild(canvas);
+
+                const renderContext = {
+                  canvasContext: context,
+                  viewport: viewport,
+                };
+                page.render(renderContext);
+              });
+            }
+          });
+        }, 1500);
       })();
 
       input.addEventListener("change", function () {
