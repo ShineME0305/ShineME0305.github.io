@@ -3,13 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF预览</title>
-    <!-- <script src="https://static.yipintemian.com/pdf/pdf.min.js"></script>
-    <script src="https://static.yipintemian.com/pdf/pdf.worker.min.js"></script> -->
-    <!-- <script src="./pdf.min.js"></script>
-    <script src="./pdf.worker.min.js"></script> -->
-    <script src="./pdf.js"></script>
-    <script src="./pdf.worker.js"></script>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <title>查看体检报告</title>
+    <script src="./pdf.min.js"></script>
+    <script src="./pdf.worker.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -21,6 +18,10 @@
         padding: 10px;
       }
 
+      #loading {
+        display: none;
+      }
+
       #pdfViewer canvas {
         width: 100%;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
@@ -29,45 +30,53 @@
   </head>
 
   <body>
-    <div id="search"></div>
+    <div id="loading">Loading...</div>
     <div id="pdfViewer"></div>
 
     <script>
-      const search = document.getElementById("search");
-      const viewer = document.getElementById("pdfViewer");
-
-      const pdfUrl = window.location.search.slice(8);
-      console.log("pdfUrl", pdfUrl);
-
       (function () {
-        search.innerText = "search === nnnnnnnnn " + pdfUrl;
+        const loading = document.getElementById("loading");
+        const pdfViewer = document.getElementById("pdfViewer");
+        const { search } = window.location;
+        loading.style.display = "block";
 
-        // 移除之前的canvas
-        while (viewer.firstChild) {
-          viewer.removeChild(viewer.firstChild);
+        if (!["https", "pdfUrl"].every((v) => search.includes(v))) {
+          loading.innerHTML = "非法地址";
+          return;
         }
 
-        pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            pdf.getPage(pageNum).then(function (page) {
-              const scale = 1.5;
-              const viewport = page.getViewport({ scale: scale });
+        while (pdfViewer.firstChild) {
+          pdfViewer.removeChild(pdfViewer.firstChild);
+        }
 
-              const canvas = document.createElement("canvas");
-              const context = canvas.getContext("2d");
-              canvas.height = viewport.height;
-              canvas.width = viewport.width;
+        const pdfUrl = search.slice(8);
 
-              viewer.appendChild(canvas);
+        pdfjsLib
+          .getDocument(pdfUrl)
+          .promise.then(function (pdf) {
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              pdf.getPage(pageNum).then(function (page) {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
 
-              const renderContext = {
-                canvasContext: context,
-                viewport: viewport,
-              };
-              page.render(renderContext);
-            });
-          }
-        });
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                pdfViewer.appendChild(canvas);
+
+                const renderContext = {
+                  canvasContext: context,
+                  viewport: viewport,
+                };
+                page.render(renderContext);
+              });
+            }
+          })
+          .then(() => {
+            loading.style.display = "none";
+          });
       })();
     </script>
   </body>
