@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <title>查看体检报告</title>
-    <script src="./pdf.min.js"></script>
-    <script src="./pdf.worker.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -31,9 +29,11 @@
   </head>
 
   <body>
-    <div id="loading">Loading...</div>
+    <div id="loading">loading...</div>
     <div id="pdfViewer"></div>
 
+    <script src="./pdf.min.js"></script>
+    <script src="./pdf.worker.min.js"></script>
     <script>
       (async function () {
         const loading = document.getElementById("loading");
@@ -42,8 +42,8 @@
         loading.style.display = "block";
 
         if (!["https", "pdfUrl"].every((v) => search.includes(v))) {
-          loading.innerHTML = "非法地址";
-          return;
+          loading.innerHTML = "无法加载 PDF，请检查链接是否有效";
+          throw new Error("PDF 加载失败");
         }
 
         while (pdfViewer.firstChild) {
