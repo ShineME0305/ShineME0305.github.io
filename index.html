@@ -53,7 +53,7 @@
       const search = document.getElementById("search");
 
       const urlParams = new URLSearchParams(window.location.search);
-      const pdfUrl = urlParams.get("pdfUrl");
+      const pdfUrl = window.location.search.slice(8);
       console.log("pdfUrl", pdfUrl);
 
       urlInput.addEventListener("change", function () {
