@@ -40,36 +40,34 @@
       console.log("pdfUrl", pdfUrl);
 
       (function () {
-        setTimeout(() => {
-          search.innerText = "search === kkkkkkkkk " + pdfUrl;
+        search.innerText = "search === nnnnnnnnn " + pdfUrl;
 
-          // 移除之前的canvas
-          // while (viewer.firstChild) {
-          //   viewer.removeChild(viewer.firstChild);
-          // }
+        // 移除之前的canvas
+        while (viewer.firstChild) {
+          viewer.removeChild(viewer.firstChild);
+        }
 
-          pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-              pdf.getPage(pageNum).then(function (page) {
-                const scale = 1.5;
-                const viewport = page.getViewport({ scale: scale });
+        pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(function (page) {
+              const scale = 1.5;
+              const viewport = page.getViewport({ scale: scale });
 
-                const canvas = document.createElement("canvas");
-                const context = canvas.getContext("2d");
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
 
-                viewer.appendChild(canvas);
+              viewer.appendChild(canvas);
 
-                const renderContext = {
-                  canvasContext: context,
-                  viewport: viewport,
-                };
-                page.render(renderContext);
-              });
-            }
-          });
-        }, 1500);
+              const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+              };
+              page.render(renderContext);
+            });
+          }
+        });
       })();
     </script>
   </body>
