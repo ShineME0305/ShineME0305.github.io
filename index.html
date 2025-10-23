@@ -6,8 +6,10 @@
     <title>PDF预览</title>
     <!-- <script src="https://static.yipintemian.com/pdf/pdf.min.js"></script>
     <script src="https://static.yipintemian.com/pdf/pdf.worker.min.js"></script> -->
-    <script src="./pdf.min.js"></script>
-    <script src="./pdf.worker.min.js"></script>
+    <!-- <script src="./pdf.min.js"></script>
+    <script src="./pdf.worker.min.js"></script> -->
+    <script type="module" src="./pdf.mjs"></script>
+    <script type="module" src="./pdf.worker.mjs"></script>
     <style>
       * {
         margin: 0;
@@ -39,7 +41,7 @@
 
       (function () {
         setTimeout(() => {
-          search.innerText = "search === ffffffff " + pdfUrl;
+          search.innerText = "search === hhhhhhhhh " + pdfUrl;
 
           // 移除之前的canvas
           while (viewer.firstChild) {
