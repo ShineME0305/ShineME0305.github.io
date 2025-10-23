@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>查看体检报告</title>
+    <title>PDF预览</title>
+    <script src="https://static.yipintemian.com/pdf/pdf.min.js"></script>
+    <script src="https://static.yipintemian.com/pdf/pdf.worker.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -11,7 +13,17 @@
       }
 
       body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         padding: 10px;
+      }
+
+      body > input,
+      body > div {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
       }
 
       #pdfViewer canvas {
@@ -20,22 +32,80 @@
       }
     </style>
   </head>
-  <body>
-    <div id="serach"></div>
-    <div id="pdfViewer"></div>
-    <!-- <script src="./pdf.mjs" type="module"></script> -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/pdf.js/5.4.149/pdf.mjs" type="module"></script>
-    <script type="module" src="https://cdn.bootcdn.net/ajax/libs/pdf.js/5.4.149/pdf.worker.mjs"></script>
 
-    <script type="module">
-      const { pdfjsLib } = globalThis;
-      const serach = document.getElementById("serach");
-      const pdfViewer = document.getElementById("pdfViewer");
+  <body>
+    <input type="file" id="fileInput" />
+    <input
+      type="text"
+      id="urlInput"
+      placeholder="使用按钮选择文件或输入pdf链接"
+    />
+    <div id="pdfViewer"></div>
+    <div>
+      https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf
+    </div>
+    <div id="search"></div>
+
+    <script>
+      const input = document.getElementById("fileInput");
+      const viewer = document.getElementById("pdfViewer");
+      const urlInput = document.getElementById("urlInput");
+      const search = document.getElementById("search");
+
+      const urlParams = new URLSearchParams(window.location.search);
       const pdfUrl = window.location.search.slice(8);
+      console.log("pdfUrl", pdfUrl);
+
+      urlInput.addEventListener("change", function () {
+        const url = this.value;
+        if (!url) {
+          console.error("Please enter a URL.");
+          return;
+        }
+
+        // 移除之前的canvas
+        while (viewer.firstChild) {
+          viewer.removeChild(viewer.firstChild);
+        }
+
+        pdfjsLib.getDocument(url).promise.then(function (pdf) {
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(function (page) {
+              const scale = 1.5;
+              const viewport = page.getViewport({ scale: scale });
+
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+
+              viewer.appendChild(canvas);
+
+              const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+              };
+              page.render(renderContext);
+            });
+          }
+        });
+      });
+
       (function () {
         setTimeout(() => {
-          serach.innerText = "search===00000000" + pdfUrl;
-          pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+          const url = pdfUrl;
+          search.innerText = "search === " + url;
+          if (!url) {
+            console.error("Please enter a URL.");
+            return;
+          }
+
+          // 移除之前的canvas
+          while (viewer.firstChild) {
+            viewer.removeChild(viewer.firstChild);
+          }
+
+          pdfjsLib.getDocument(url).promise.then(function (pdf) {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
               pdf.getPage(pageNum).then(function (page) {
                 const scale = 1.5;
@@ -46,7 +116,7 @@
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                pdfViewer.appendChild(canvas);
+                viewer.appendChild(canvas);
 
                 const renderContext = {
                   canvasContext: context,
@@ -58,6 +128,47 @@
           });
         }, 1500);
       })();
+
+      input.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file.type !== "application/pdf") {
+          console.error(file.name, "is not a .pdf file.");
+          return;
+        }
+
+        // 移除之前的canvas
+        while (viewer.firstChild) {
+          viewer.removeChild(viewer.firstChild);
+        }
+
+        const fileReader = new FileReader();
+        fileReader.onload = function () {
+          const typedarray = new Uint8Array(this.result);
+
+          pdfjsLib.getDocument(typedarray).promise.then(function (pdf) {
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              pdf.getPage(pageNum).then(function (page) {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
+
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                viewer.appendChild(canvas);
+
+                const renderContext = {
+                  canvasContext: context,
+                  viewport: viewport,
+                };
+                page.render(renderContext);
+              });
+            }
+          });
+        };
+        fileReader.readAsArrayBuffer(file);
+      });
     </script>
   </body>
 </html>
